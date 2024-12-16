@@ -1,4 +1,4 @@
-# Verwalco - Verwaltung und Kontrolle von Kosten
+# Verwalco - Verwaltung und Kontrolle
 
 Eine Webanwendung zur Verwaltung und Kontrolle der Laufenden Kosten.
 
