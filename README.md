@@ -1,6 +1,6 @@
-# Verwalco - Lagerbestand Kontrolle
+# Verwalco - Verwaltung und Kontrolle von Kosten
 
-Eine Webanwendung zur Verwaltung und Kontrolle von Lagerbeständen.
+Eine Webanwendung zur Verwaltung und Kontrolle der Laufenden Kosten.
 
 ## Installation
 
