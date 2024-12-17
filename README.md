@@ -6,8 +6,9 @@ Man gibt Bezeichnung, den Betrag, Zahlungstag und Konto ein.
 Man kann die Einträge beliebig verschieben, bearbeiten und löschen.
 
 Wenn die Liste fertig ist, sieht man unten die Gesamtsumme der Ausgaben.
-Man klickt den CHeckbox "Bezahlt" bei der abgebuchten Beträgen im laufe des Monats.
-Man sieht unten immer noch offenen Gesamtbetrag und weißt ganz genau was noch alles
+Man klickt den Checkbox "Bezahlt" bei der abgebuchten Beträgen im laufe des Monats.
+Bezahlte Posten werden vom Gesamtbetrag abgezogen.
+Man sieht unten noch offenen Gesamtbetrag und weißt dann ganz genau was noch alles
 und wann abgebucht wird. So hat man besseren Überblick über die Ausgaben und man kann
 den Family-Budget besser planen.
 
