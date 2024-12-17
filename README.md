@@ -1,6 +1,14 @@
 # Verwalco - Verwaltung und Kontrolle
 
 Eine Webanwendung zur Verwaltung und Kontrolle der Laufenden Kosten.
+Man trägt die Laufenden Kosten ein und trennt die nach Konten.
+Man gibt Bezeichnung, den Betrag, Zahlungstag und Konto ein.
+
+Wenn die Liste fertig ist, sieht man unten die Gesamtsumme der Ausgaben.
+Man klickt den CHeckbox "Bezahlt" bei der abgebuchten Beträgen im laufe des Monats.
+Man sieht unten immer noch offenen Gesamtbetrag und weißt ganz genau was noch alles
+und wann abgebucht wird. So hat man besseren Überblick über die Ausgaben und man kann
+den Family-Budget besser planen.
 
 ## Installation
 
