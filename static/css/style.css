@@ -49,6 +49,7 @@ body {
 }
 .form-control {
     width: 100%;
+    background-color: #eeeeee;
 }
 .btn-group-sm > .btn, .btn-sm {
     padding: 0.25rem 0.5rem;
