@@ -4,6 +4,8 @@ Eine Webanwendung zur Verwaltung und Kontrolle der Laufenden Kosten.
 Man trägt die Laufenden Kosten ein und trennt die nach Konten.
 Man gibt Bezeichnung, den Betrag, Zahlungstag und Konto ein.
 Man kann die Einträge beliebig verschieben, bearbeiten und löschen.
+Bei dieser Version sind die Muster-Einträge vorhanden, um su sehen 
+wie das ganze aussieht. Man kann die Einträge natürlich alle löschen.
 
 Wenn die Liste fertig ist, sieht man unten die Gesamtsumme der Ausgaben.
 Man klickt den Checkbox "Bezahlt" bei der abgebuchten Beträgen im laufe des Monats.
