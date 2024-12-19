@@ -1,0 +1,70 @@
+body {
+    background-color: #29292d;
+    color: #ebebeb;
+}
+.container { 
+    margin-top: 30px; 
+}
+.card {
+    background-color: #525258;
+    color: #ffffff;
+}
+.form-group { margin-bottom: 15px; }
+.edit-mode input { margin-bottom: 5px; }
+.konto-group {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    background-color: #525258;
+    padding: 10px;
+    border-radius: 5px;
+}
+.konto-header {
+    font-weight: bold;
+    color: #ffffff;
+    margin-bottom: 10px;
+}
+.table {
+    width: 100%;
+    table-layout: fixed;
+}
+.table th, .table td {
+    padding: 8px;
+    vertical-align: middle;
+}
+.col-bezeichnung { width: 35%; }
+.col-betrag { width: 20%; }
+.col-zahlungstag { width: 15%; }
+.col-bezahlt { width: 10%; }
+.col-aktionen { 
+    width: 20%; 
+    text-align: right;
+}
+.col-aktionen button {
+    margin-right: 5px;
+}
+.col-aktionen button:last-child {
+    margin-right: 0;
+}
+.form-control {
+    width: 100%;
+}
+.btn-group-sm > .btn, .btn-sm {
+    padding: 0.25rem 0.5rem;
+}
+.draggable {
+    cursor: move;
+    user-select: none;
+}
+.dragging {
+    opacity: 0.5;
+    background-color: #e9ecef;
+}
+.drag-handle {
+    cursor: move;
+    padding: 5px;
+    margin-right: 5px;
+    color: #6c757d;
+}
+.drag-handle:hover {
+    color: #495057;
+}
