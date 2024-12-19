@@ -16,7 +16,7 @@ den Family-Budget besser planen.
 
 ## Installation
 
-1. Stellen Sie sicher, dass Python (Version 3.x) auf Ihrem System installiert ist.
+1. Stellen Sie sicher, dass Python (Version 3.11) auf Ihrem System installiert ist.
 
 2. Klonen Sie das Repository:
    ```bash
