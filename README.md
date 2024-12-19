@@ -26,10 +26,14 @@ den Family-Budget besser planen.
 
 3. Erstellen Sie eine virtuelle Umgebung und aktivieren Sie diese:
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # Für macOS/Linux
-   # oder
-   .\venv\Scripts\activate  # Für Windows
+   python3 -m venv venv         # Für macOS
+   source venv/bin/activate
+
+   python -m venv venv         # Für Linux
+   source venv/bin/activate
+   
+   python -m venv venv          # Für Windows
+   ./venv/Scripts/activate  
    ```
 
 4. Installieren Sie die erforderlichen Pakete:
