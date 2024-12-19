@@ -1,22 +1,39 @@
 from flask import Flask, render_template, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
+from peewee import *
 from datetime import datetime
+from playhouse.shortcuts import model_to_dict
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///kosten.db'
-db = SQLAlchemy(app)
+db = SqliteDatabase('kosten.db')
 
-class Kosten(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    bezeichnung = db.Column(db.String(100), nullable=False)
-    betrag = db.Column(db.Float, nullable=False)
-    zahlungstag = db.Column(db.Integer, nullable=False)
-    konto = db.Column(db.String(100), nullable=False)
-    bezahlt = db.Column(db.Boolean, default=False)
-    position = db.Column(db.Integer, default=0)
+class BaseModel(Model):
+    class Meta:
+        database = db
 
-with app.app_context():
-    db.create_all()
+class Kosten(BaseModel):
+    bezeichnung = CharField()
+    betrag = FloatField()
+    zahlungstag = IntegerField()
+    konto = CharField()
+    bezahlt = BooleanField(default=False)
+    position = IntegerField(default=0)
+
+    class Meta:
+        table_name = 'kosten'
+
+@app.before_request
+def before_request():
+    db.connect(reuse_if_open=True)
+
+@app.after_request
+def after_request(response):
+    db.close()
+    return response
+
+# Erstelle die Tabellen beim Start
+db.connect()
+db.create_tables([Kosten])
+db.close()
 
 @app.route('/')
 def index():
@@ -24,79 +41,85 @@ def index():
 
 @app.route('/api/kosten', methods=['GET'])
 def get_kosten():
-    kosten = Kosten.query.order_by(Kosten.konto, Kosten.position, Kosten.zahlungstag).all()
-    return jsonify([{
-        'id': k.id,
-        'bezeichnung': k.bezeichnung,
-        'betrag': k.betrag,
-        'zahlungstag': k.zahlungstag,
-        'konto': k.konto,
-        'bezahlt': k.bezahlt,
-        'position': k.position
-    } for k in kosten])
+    kosten = list(Kosten.select().order_by(Kosten.konto, Kosten.position, Kosten.zahlungstag))
+    return jsonify([model_to_dict(k) for k in kosten])
 
 @app.route('/api/kosten', methods=['POST'])
 def add_kosten():
     try:
-        data = request.json
+        data = request.get_json()
         if not all(key in data for key in ['bezeichnung', 'betrag', 'zahlungstag', 'konto']):
             return jsonify({'success': False, 'error': 'Fehlende Felder'}), 400
-            
+
         # Get the maximum position for the given konto
-        max_position = db.session.query(db.func.max(Kosten.position)).filter(Kosten.konto == data['konto']).scalar()
-        if max_position is None:
-            max_position = -1
-            
-        neue_kosten = Kosten(
+        max_position = (Kosten
+                       .select(fn.MAX(Kosten.position))
+                       .where(Kosten.konto == data['konto'])
+                       .scalar() or -1)
+
+        kosten = Kosten.create(
             bezeichnung=data['bezeichnung'],
             betrag=float(data['betrag']),
             zahlungstag=int(data['zahlungstag']),
             konto=data['konto'],
-            bezahlt=False,
             position=max_position + 1
         )
-        db.session.add(neue_kosten)
-        db.session.commit()
-        return jsonify({'success': True, 'id': neue_kosten.id})
+        
+        return jsonify({
+            'success': True,
+            'data': model_to_dict(kosten)
+        })
     except ValueError as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'error': 'Ungültige Werte: ' + str(e)}), 400
+        return jsonify({'success': False, 'error': f'Ungültige Werte: {str(e)}'}), 400
     except Exception as e:
-        db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/kosten/<int:id>', methods=['PUT'])
 def update_kosten(id):
-    kosten = Kosten.query.get_or_404(id)
-    data = request.json
-    if 'bezahlt' in data:
-        kosten.bezahlt = data['bezahlt']
-    else:
-        kosten.bezeichnung = data['bezeichnung']
-        kosten.betrag = float(data['betrag'])
-        kosten.zahlungstag = int(data['zahlungstag'])
-        kosten.konto = data['konto']
-    db.session.commit()
-    return jsonify({'success': True})
+    try:
+        data = request.get_json()
+        kosten = Kosten.get_or_none(Kosten.id == id)
+        
+        if not kosten:
+            return jsonify({'success': False, 'error': 'Eintrag nicht gefunden'}), 404
+
+        if 'bezahlt' in data:
+            kosten.bezahlt = data['bezahlt']
+        else:
+            kosten.bezeichnung = data['bezeichnung']
+            kosten.betrag = float(data['betrag'])
+            kosten.zahlungstag = int(data['zahlungstag'])
+            kosten.konto = data['konto']
+        
+        kosten.save()
+        return jsonify({
+            'success': True,
+            'data': model_to_dict(kosten)
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/kosten/<int:id>', methods=['DELETE'])
 def delete_kosten(id):
-    kosten = Kosten.query.get_or_404(id)
-    db.session.delete(kosten)
-    db.session.commit()
-    return jsonify({'success': True})
+    try:
+        kosten = Kosten.get_or_none(Kosten.id == id)
+        if not kosten:
+            return jsonify({'success': False, 'error': 'Eintrag nicht gefunden'}), 404
+            
+        kosten.delete_instance()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/kosten/reorder', methods=['POST'])
 def reorder_kosten():
-    data = request.json
     try:
-        for item in data:
-            kosten = Kosten.query.get_or_404(item['id'])
-            kosten.position = item['position']
-        db.session.commit()
+        data = request.get_json()
+        with db.atomic():
+            for item in data:
+                Kosten.update(position=item['position']).where(Kosten.id == item['id']).execute()
         return jsonify({'success': True})
     except Exception as e:
-        db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
