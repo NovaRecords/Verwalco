@@ -54,7 +54,7 @@ den Family-Budget besser planen.
 ## Technische Details
 
 Die Anwendung basiert auf:
-- Flask 3.0.0
-- Flask-SQLAlchemy 3.1.1
-- SQLAlchemy 2.0.23
+- Flask 3.0.2
+- peewee 3.17.0
+- python-dotenv 1.0.0
 
