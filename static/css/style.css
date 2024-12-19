@@ -30,6 +30,7 @@ body {
 .table th, .table td {
     padding: 8px;
     vertical-align: middle;
+    background-color: #e0e0e0;
 }
 .col-bezeichnung { width: 35%; }
 .col-betrag { width: 20%; }
