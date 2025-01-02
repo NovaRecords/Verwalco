@@ -341,20 +341,27 @@ function startEdit(id) {
     const cells = row.querySelectorAll('td');
     
     const bezeichnung = cells[1].textContent;
-    const betrag = cells[2].textContent.replace('€', '').trim();
-    const zahlungstag = cells[3].textContent;
+    // Get the original betrag text and clean it
+    const originalBetrag = cells[2].textContent;
+    console.log('Original betrag:', originalBetrag);
     
-    cells[1].innerHTML = `<input type="text" class="form-control" value="${bezeichnung}">`;
-    cells[2].innerHTML = `<input type="number" step="0.01" class="form-control" value="${betrag}">`;
-    cells[3].innerHTML = `
-        <select class="form-control">
+    // Clean up the betrag value, keeping the comma
+    const betrag = originalBetrag.replace('€', '').trim();
+    console.log('Cleaned betrag:', betrag);
+    
+    const zahlungstag = cells[4].textContent;
+    
+    cells[1].innerHTML = `<input type="text" class="form-control" value="${bezeichnung}" style="min-width: 100px">`;
+    cells[2].innerHTML = `<input type="text" class="form-control" value="${betrag}" style="min-width: 80px">`;
+    cells[4].innerHTML = `
+        <select class="form-control" style="min-width: 70px">
             ${Array.from({length: 31}, (_, i) => i + 1)
                 .map(day => `<option value="${day}" ${day == zahlungstag ? 'selected' : ''}>${day}</option>`)
                 .join('')}
         </select>
     `;
     
-    const aktionenCell = cells[5];
+    const aktionenCell = cells[6];
     aktionenCell.innerHTML = `
         <button onclick="saveEdit(${id})" class="btn btn-success btn-sm">
             <i class="fas fa-save"></i>
@@ -365,9 +372,18 @@ function startEdit(id) {
 async function saveEdit(id) {
     const row = document.querySelector(`tr[data-id="${id}"]`);
     const bezeichnung = row.querySelector('td:nth-child(2) input').value;
-    const betrag = row.querySelector('td:nth-child(3) input').value;
-    const zahlungstag = row.querySelector('td:nth-child(4) select').value;
+    const betragStr = row.querySelector('td:nth-child(3) input').value;
+    console.log('Betrag from input:', betragStr);
+    
+    // Convert German number format (comma) to international format (period)
+    const betrag = betragStr.replace(',', '.');
+    console.log('Converted betrag:', betrag);
+    
+    const zahlungstag = row.querySelector('td:nth-child(5) select').value;
     const konto = row.closest('.konto-group').dataset.konto;
+
+    // Log the data being sent
+    console.log('Saving data:', { id, bezeichnung, betrag, zahlungstag, konto });
 
     try {
         const response = await fetch(`/api/kosten/${id}`, {
@@ -378,11 +394,18 @@ async function saveEdit(id) {
             body: JSON.stringify({ bezeichnung, betrag, zahlungstag, konto })
         });
 
+        const responseData = await response.json();
+        console.log('Server response:', responseData);
+
         if (response.ok) {
-            loadKosten();
+            await loadKosten();
+        } else {
+            console.error('Failed to save:', responseData.error || 'Unknown error');
+            alert('Fehler beim Speichern: ' + (responseData.error || 'Unbekannter Fehler'));
         }
     } catch (error) {
         console.error('Error:', error);
+        alert('Fehler beim Speichern: ' + error.message);
     }
 }
 
@@ -395,6 +418,9 @@ async function updateBezahlt(id, bezahlt) {
             },
             body: JSON.stringify({ bezahlt })
         });
+
+        const responseData = await response.json();
+        console.log('Server response:', responseData);
 
         if (!response.ok) {
             throw new Error('Failed to update bezahlt status');
