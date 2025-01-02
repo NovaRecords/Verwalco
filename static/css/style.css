@@ -44,8 +44,8 @@ body {
 }
 .col-bezeichnung { width: 35%; }
 .col-betrag { width: 20%; }
-.col-zahlungstag { width: 15%; }
-.col-bezahlt { width: 10%; }
+.col-zahlungstag { width: 15%; text-align: center; }
+.col-bezahlt { width: 10%; text-align: center; }
 .col-aktionen { 
     width: 20%; 
     text-align: right;
@@ -112,7 +112,7 @@ body {
 }
 
 td .form-check {
-    padding: 0 !important;
+    /* padding: 0 !important; */
     margin: 0 !important;
     display: flex;
     align-items: center;
