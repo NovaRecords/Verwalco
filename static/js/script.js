@@ -44,6 +44,108 @@ document.addEventListener('DOMContentLoaded', function() {
     loadKosten();
 });
 
+// Globale Variable für die Summenberechnung
+let selectedSums = {};
+
+// Funktion zum Aktualisieren der Summenanzeige
+function updateSumDisplay(konto) {
+    const kontoHeader = document.querySelector(`.konto-group[data-konto="${konto}"] .konto-header`);
+    const sumDisplay = kontoHeader.querySelector('.sum-display');
+    
+    if (selectedSums[konto] && selectedSums[konto] > 0) {
+        if (!sumDisplay) {
+            const newSumDisplay = document.createElement('span');
+            newSumDisplay.className = 'sum-display';
+            kontoHeader.appendChild(newSumDisplay);
+        }
+        const displayElement = sumDisplay || kontoHeader.querySelector('.sum-display');
+        displayElement.textContent = `Summe: ${new Intl.NumberFormat('de-DE', { 
+            style: 'currency', 
+            currency: 'EUR' 
+        }).format(selectedSums[konto])}`;
+        displayElement.style.display = 'inline-block';
+    } else if (sumDisplay) {
+        sumDisplay.style.display = 'none';
+    }
+}
+
+// Funktion zum Aktualisieren der ausgewählten Summe
+function updateSelectedSum(checkbox, betrag, konto) {
+    if (!selectedSums[konto]) {
+        selectedSums[konto] = 0;
+    }
+
+    const amount = parseFloat(betrag.replace(',', '.'));
+    if (checkbox.checked) {
+        selectedSums[konto] += amount;
+    } else {
+        selectedSums[konto] -= amount;
+        // Verhindere negative Werte durch Rundungsfehler
+        if (Math.abs(selectedSums[konto]) < 0.01) {
+            selectedSums[konto] = 0;
+        }
+    }
+    
+    updateSumDisplay(konto);
+    
+    // Aktualisiere die Gesamtsumme der ausgewählten Beträge
+    let totalSelectedSum = 0;
+    Object.values(selectedSums).forEach(sum => {
+        totalSelectedSum += sum;
+    });
+    
+    // Zeige die Gesamtsumme der ausgewählten Beträge an
+    const totalDisplay = document.getElementById('selected-total');
+    if (!totalDisplay) {
+        const newTotalDisplay = document.createElement('div');
+        newTotalDisplay.id = 'selected-total';
+        newTotalDisplay.className = 'selected-total-display';
+        document.getElementById('kostenListe').insertAdjacentElement('afterend', newTotalDisplay);
+    }
+    
+    const displayElement = document.getElementById('selected-total');
+    if (totalSelectedSum > 0) {
+        displayElement.textContent = `Summe der ausgewählten Beträge: ${new Intl.NumberFormat('de-DE', { 
+            style: 'currency', 
+            currency: 'EUR' 
+        }).format(totalSelectedSum)}`;
+        displayElement.style.display = 'block';
+    } else {
+        displayElement.style.display = 'none';
+    }
+}
+
+// Funktion zum Aktualisieren des Tooltips
+function updateTooltip(e, konto) {
+    if (!tooltips[konto]) {
+        tooltips[konto] = document.createElement('div');
+        tooltips[konto].className = 'custom-tooltip';
+        document.body.appendChild(tooltips[konto]);
+    }
+    
+    tooltips[konto].style.display = 'block';
+    tooltips[konto].style.left = e.pageX + 'px';
+    tooltips[konto].style.top = e.pageY + 'px';
+    tooltips[konto].innerHTML = `Summe: ${new Intl.NumberFormat('de-DE', { 
+        style: 'currency', 
+        currency: 'EUR' 
+    }).format(selectedSums[konto])}`;
+}
+
+// Funktion zum Ausblenden des Tooltips
+function hideTooltip(konto) {
+    if (tooltips[konto]) {
+        tooltips[konto].style.display = 'none';
+    }
+}
+
+// Event-Listener für das Verlassen des Dokuments
+document.addEventListener('mouseleave', () => {
+    Object.keys(tooltips).forEach(konto => {
+        hideTooltip(konto);
+    });
+});
+
 // Kosten nach Konten gruppieren
 function groupByKonto(kosten) {
     const groups = {};
@@ -69,27 +171,21 @@ function displayKosten(kostenListe) {
     const kontoGruppen = groupByKonto(kostenListe);
     
     kostenListeElement.innerHTML = '';
+    selectedSums = {}; // Reset der Summen beim Neuladen
     
     // Gesamtsumme berechnen
     let gesamtsumme = 0;
-    console.log('Kostenberechnung startet:', kostenListe);
     kostenListe.forEach(k => {
-        console.log('Prüfe Kosten:', k);
-        console.log('Bezahlt Status:', k.bezahlt);
-        console.log('Betrag (original):', k.betrag, 'Typ:', typeof k.betrag);
         if (!k.bezahlt) {
             const betrag = Number(k.betrag);
-            console.log('Betrag (konvertiert):', betrag);
             gesamtsumme += betrag;
-            console.log('Zwischensumme:', gesamtsumme);
         }
     });
-    console.log('Finale Gesamtsumme:', gesamtsumme);
     document.getElementById('gesamtsumme').textContent = new Intl.NumberFormat('de-DE', { 
         style: 'currency', 
         currency: 'EUR' 
     }).format(gesamtsumme);
-    
+
     Object.keys(kontoGruppen).sort().forEach(konto => {
         const kontoGruppe = document.createElement('div');
         kontoGruppe.className = 'konto-group';
@@ -97,7 +193,9 @@ function displayKosten(kostenListe) {
         
         const kontoHeader = document.createElement('div');
         kontoHeader.className = 'konto-header';
-        kontoHeader.textContent = konto;
+        kontoHeader.innerHTML = `
+            <span class="konto-name">${konto}</span>
+        `;
         
         const table = document.createElement('table');
         table.className = 'table';
@@ -107,6 +205,7 @@ function displayKosten(kostenListe) {
                     <th style="width: 30px"></th>
                     <th class="col-bezeichnung">Bezeichnung</th>
                     <th class="col-betrag">Betrag</th>
+                    <th class="col-sum" style="width: 80px">Summe</th>
                     <th class="col-zahlungstag">Zahlungstag</th>
                     <th class="col-bezahlt">Bezahlt</th>
                     <th class="col-aktionen">Aktionen</th>
@@ -130,6 +229,8 @@ function displayKosten(kostenListe) {
             tr.addEventListener('dragover', handleDragOver);
             tr.addEventListener('drop', handleDrop);
             
+            const betragFormatted = parseFloat(k.betrag).toFixed(2).replace('.', ',');
+            
             tr.innerHTML = `
                 <td>
                     <span class="drag-handle">
@@ -137,7 +238,14 @@ function displayKosten(kostenListe) {
                     </span>
                 </td>
                 <td class="col-bezeichnung">${k.bezeichnung}</td>
-                <td class="col-betrag">${parseFloat(k.betrag).toFixed(2)} €</td>
+                <td class="col-betrag">${betragFormatted} €</td>
+                <td class="col-sum">
+                    <div class="form-check" style="margin: 0; padding: 0; display: flex; justify-content: center;">
+                        <input type="checkbox" class="form-check-input sum-checkbox" 
+                            style="margin: 0; cursor: pointer;"
+                            onchange="updateSelectedSum(this, '${betragFormatted}', '${konto}')">
+                    </div>
+                </td>
                 <td class="col-zahlungstag">${k.zahlungstag}</td>
                 <td class="col-bezahlt">
                     <div class="form-check">
