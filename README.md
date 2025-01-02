@@ -20,7 +20,7 @@ den Family-Budget besser planen.
 
 2. Klonen Sie das Repository:
    ```bash
-   git clone [repository-url]
+   git clone git@github.com:NovaRecords/Verwalco.git
    cd Verwalco
    ```
 
