@@ -41,7 +41,7 @@ den Family-Budget besser planen.
    pip install -r requirements.txt
    ```
 
-## Anwendung starten
+## Anwendung starten (Local)
 
 1. Stellen Sie sicher, dass die virtuelle Umgebung aktiviert ist.
 
@@ -53,6 +53,20 @@ den Family-Budget besser planen.
 3. Öffnen Sie einen Webbrowser und navigieren Sie zu:
    ```
    http://localhost:8000
+   ```
+
+## Anwendung starten (Server)
+
+1. Stellen Sie sicher, dass die virtuelle Umgebung aktiviert ist.
+
+2. Starten Sie die Anwendung:
+   ```bash
+   gunicorn app:app -b 0.0.0.0:8000
+   ```
+
+3. Öffnen Sie einen Webbrowser und navigieren Sie zu:
+   ```
+   http://server-ip:8000
    ```
 
 ## Technische Details
