@@ -52,7 +52,7 @@ den Family-Budget besser planen.
 
 3. Öffnen Sie einen Webbrowser und navigieren Sie zu:
    ```
-   http://localhost:5000
+   http://localhost:8000
    ```
 
 ## Technische Details
