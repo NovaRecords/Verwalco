@@ -10,8 +10,8 @@ app.secret_key = 'dein-geheimer-schluessel'  # Ändern Sie dies zu einem sichere
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['PERMANENT_SESSION_LIFETIME'] = 1800  # 30 Minuten Session-Timeout
 
-ADMIN_USERNAME = "nova1006"
-ADMIN_PASSWORD = "A9jutk@100605"
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "password"
 
 def login_required(f):
     @wraps(f)
