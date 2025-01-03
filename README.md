@@ -74,7 +74,7 @@ den Family-Budget besser planen.
 
 - Benutzername: admin
 - Passwort: password
-- Die zugangsdaten können Sie in dem 
+- Die Zugangsdaten können Sie in dem 
 file app.py in der Zeile 13 und 14 ändern.
 
 ## Technische Details
