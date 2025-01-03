@@ -70,6 +70,13 @@ den Family-Budget besser planen.
    http://server-ip:8000
    ```
 
+## Login
+
+login: admin
+Passwort: password
+Die zugangsdaten können Sie in dem 
+file app.py in der Zeile 13 und 14 ändern.
+
 ## Technische Details
 
 Die Anwendung basiert auf:
