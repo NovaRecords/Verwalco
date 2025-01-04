@@ -3,15 +3,21 @@
 Eine Webanwendung zur Verwaltung und Kontrolle der Laufenden Kosten.
 Man trägt die Laufenden Kosten ein und trennt die nach Konten.
 Man gibt Bezeichnung, den Betrag, Zahlungstag und Konto ein.
+
+Die Einträge werden nach Zahlungstag und Konto sortiert.
 Man kann die Einträge beliebig verschieben, bearbeiten und löschen.
-Bei dieser Version sind die Muster-Einträge vorhanden, um su sehen 
+Bei dieser Version sind die Muster-Einträge vorhanden, um zu sehen 
 wie das ganze aussieht. Man kann die Einträge natürlich alle löschen.
 
-Wenn die Liste fertig ist, sieht man unten die Gesamtsumme der Ausgaben.
-Man klickt den Checkbox "Bezahlt" bei der abgebuchten Beträgen im laufe des Monats.
-Bezahlte Posten werden vom Gesamtbetrag abgezogen.
+Mit der Funktion "Summe" kann man beliebigen Positionen summieren um z.B. zu sehen, 
+wie viel noch von der jeweiligen Konto abgebucht wird.
+
+Wenn die Liste fertiggestellt ist, sieht man unten die Gesamtsumme der Ausgaben.
+Man klickt der Checkbox "Bezahlt" bei der abgebuchten Beträgen im laufe des Monats an.
+Bezahlte Posten werden vom Gesamtbetrag abgezogen. 
+
 Man sieht unten noch offenen Gesamtbetrag und weißt dann ganz genau was noch alles
-und wann abgebucht wird. So hat man besseren Überblick über die Ausgaben und man kann
+und wann abgebucht wird. So hat man besseren Überblick über die Ausgaben und kann
 den Family-Budget besser planen.
 
 ## Installation
