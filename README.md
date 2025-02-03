@@ -20,6 +20,8 @@ Man sieht unten noch offenen Gesamtbetrag und weißt dann ganz genau was noch al
 und wann abgebucht wird. So hat man besseren Überblick über die Ausgaben und kann
 den Family-Budget besser planen.
 
+<img src="Verwalco.png">
+
 ## Installation
 
 1. Stellen Sie sicher, dass Python (Version 3.x) auf Ihrem System installiert ist.
