@@ -426,7 +426,30 @@ async function updateBezahlt(id, bezahlt) {
             throw new Error('Failed to update bezahlt status');
         }
 
-        await loadKosten(); // Neu laden der Daten nach erfolgreicher Aktualisierung
+        // Aktualisiere den Bezahlstatus visuell
+        const row = document.querySelector(`tr[data-id="${id}"]`);
+        if (row) {
+            if (bezahlt) {
+                row.classList.add('bezahlt');
+            } else {
+                row.classList.remove('bezahlt');
+            }
+        }
+
+        // Aktualisiere nur die Gesamtsumme
+        const kostenResponse = await fetch('/api/kosten');
+        const kostenListe = await kostenResponse.json();
+        let gesamtsumme = 0;
+        kostenListe.forEach(k => {
+            if (!k.bezahlt) {
+                const betrag = Number(k.betrag);
+                gesamtsumme += betrag;
+            }
+        });
+        document.getElementById('gesamtsumme').textContent = new Intl.NumberFormat('de-DE', { 
+            style: 'currency', 
+            currency: 'EUR' 
+        }).format(gesamtsumme);
     } catch (error) {
         console.error('Error updating bezahlt status:', error);
         // Checkbox auf den vorherigen Zustand zurücksetzen
