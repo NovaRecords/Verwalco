@@ -320,8 +320,8 @@ async function updatePositions() {
     }));
 
     try {
-        const response = await fetch('/api/kosten/positions', {
-            method: 'PUT',
+        const response = await fetch('/api/kosten/reorder', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
