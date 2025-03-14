@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const formData = {
             bezeichnung: document.getElementById('bezeichnung').value,
-            betrag: document.getElementById('betrag').value,
+            betrag: document.getElementById('betrag').value.replace(/\./g, '').replace(',', '.'), // Entferne Tausendertrennzeichen und konvertiere zu Dezimalpunkt
             zahlungstag: document.getElementById('zahlungstag').value,
             konto: document.getElementById('konto').value
         };
@@ -61,7 +61,9 @@ function updateSumDisplay(konto) {
         const displayElement = sumDisplay || kontoHeader.querySelector('.sum-display');
         displayElement.textContent = `Summe: ${new Intl.NumberFormat('de-DE', { 
             style: 'currency', 
-            currency: 'EUR' 
+            currency: 'EUR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
         }).format(selectedSums[konto])}`;
         displayElement.style.display = 'inline-block';
     } else if (sumDisplay) {
@@ -107,7 +109,9 @@ function updateSelectedSum(checkbox, betrag, konto) {
     if (totalSelectedSum > 0) {
         displayElement.textContent = `Summe der ausgewählten Beträge: ${new Intl.NumberFormat('de-DE', { 
             style: 'currency', 
-            currency: 'EUR' 
+            currency: 'EUR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
         }).format(totalSelectedSum)}`;
         displayElement.style.display = 'block';
     } else {
@@ -128,7 +132,9 @@ function updateTooltip(e, konto) {
     tooltips[konto].style.top = e.pageY + 'px';
     tooltips[konto].innerHTML = `Summe: ${new Intl.NumberFormat('de-DE', { 
         style: 'currency', 
-        currency: 'EUR' 
+        currency: 'EUR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
     }).format(selectedSums[konto])}`;
 }
 
@@ -183,7 +189,9 @@ function displayKosten(kostenListe) {
     });
     document.getElementById('gesamtsumme').textContent = new Intl.NumberFormat('de-DE', { 
         style: 'currency', 
-        currency: 'EUR' 
+        currency: 'EUR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
     }).format(gesamtsumme);
 
     Object.keys(kontoGruppen).sort().forEach(konto => {
@@ -229,7 +237,11 @@ function displayKosten(kostenListe) {
             tr.addEventListener('dragover', handleDragOver);
             tr.addEventListener('drop', handleDrop);
             
-            const betragFormatted = parseFloat(k.betrag).toFixed(2).replace('.', ',');
+            const betragFormatted = new Intl.NumberFormat('de-DE', { 
+                style: 'decimal', 
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(parseFloat(k.betrag));
             
             tr.innerHTML = `
                 <td>
@@ -448,7 +460,9 @@ async function updateBezahlt(id, bezahlt) {
         });
         document.getElementById('gesamtsumme').textContent = new Intl.NumberFormat('de-DE', { 
             style: 'currency', 
-            currency: 'EUR' 
+            currency: 'EUR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
         }).format(gesamtsumme);
     } catch (error) {
         console.error('Error updating bezahlt status:', error);
