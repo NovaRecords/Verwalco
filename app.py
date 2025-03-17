@@ -9,6 +9,7 @@ app = Flask(__name__)
 app.secret_key = 'dein-geheimer-schluessel'  # Ändern Sie dies zu einem sicheren Schlüssel
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['PERMANENT_SESSION_LIFETIME'] = 1800  # 30 Minuten Session-Timeout
+app.debug = True  # Debug-Modus aktivieren
 
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "password"
@@ -47,9 +48,14 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         
+        app.logger.debug(f'Login attempt - Username: {username}')  # Debug-Log
+        
         if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
             session['user'] = username
+            app.logger.debug('Login successful')  # Debug-Log
             return redirect('/')
+        else:
+            app.logger.debug('Login failed')  # Debug-Log
             
     return render_template('login.html')
 
@@ -202,4 +208,4 @@ if __name__ == '__main__':
     db.connect()
     db.create_tables([Kosten])
     db.close()
-    app.run(host='0.0.0.0', port=8000, debug=False)
+    app.run(host='0.0.0.0', port=8000, debug=True)
