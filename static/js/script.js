@@ -42,7 +42,55 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial laden
     loadKosten();
+    loadKonten();
 });
+
+// Konten laden und Datalist aktualisieren
+async function loadKonten() {
+    try {
+        const response = await fetch('/api/konten');
+        const konten = await response.json();
+        const datalist = document.getElementById('konten-list');
+        datalist.innerHTML = '';
+        konten.forEach(konto => {
+            const option = document.createElement('option');
+            option.value = konto;
+            datalist.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading konten:', error);
+    }
+}
+
+// Funktion zum Umbenennen eines Kontos
+async function renameKonto(oldName) {
+    const newName = prompt('Neuer Name für Konto "' + oldName + '":', oldName);
+    if (newName && newName !== oldName) {
+        try {
+            const response = await fetch('/api/konten/rename', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    old_name: oldName,
+                    new_name: newName
+                })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                loadKosten();
+                loadKonten();
+            } else {
+                alert('Fehler beim Umbenennen: ' + (result.error || 'Unbekannter Fehler'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Fehler beim Umbenennen des Kontos');
+        }
+    }
+}
 
 // Globale Variable für die Summenberechnung
 let selectedSums = {};
@@ -199,12 +247,24 @@ function displayKosten(kostenListe) {
         kontoGruppe.className = 'konto-group';
         kontoGruppe.dataset.konto = konto;
         
+        // Konto-Header mit Rename-Button
         const kontoHeader = document.createElement('div');
-        kontoHeader.className = 'konto-header';
-        kontoHeader.innerHTML = `
-            <span class="konto-name">${konto}</span>
-        `;
+        kontoHeader.className = 'konto-header d-flex justify-content-between align-items-center';
         
+        const kontoTitle = document.createElement('h5');  
+        kontoTitle.className = 'mb-0';  
+        kontoTitle.textContent = konto;
+        
+        const renameButton = document.createElement('button');
+        renameButton.className = 'btn btn-outline-secondary btn-sm ms-2';
+        renameButton.innerHTML = '<i class="fas fa-edit"></i>';
+        renameButton.title = 'Konto umbenennen';
+        renameButton.onclick = () => renameKonto(konto);
+        
+        kontoHeader.appendChild(kontoTitle);
+        kontoHeader.appendChild(renameButton);
+        kontoGruppe.appendChild(kontoHeader);
+
         const table = document.createElement('table');
         table.className = 'table';
         table.innerHTML = `
@@ -279,7 +339,6 @@ function displayKosten(kostenListe) {
             tbody.appendChild(tr);
         });
         
-        kontoGruppe.appendChild(kontoHeader);
         kontoGruppe.appendChild(table);
         kostenListeElement.appendChild(kontoGruppe);
     });

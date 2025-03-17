@@ -168,6 +168,36 @@ def reorder_kosten():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/konten', methods=['GET'])
+@login_required
+def get_konten():
+    konten = (Kosten
+              .select(Kosten.konto)
+              .distinct()
+              .order_by(Kosten.konto))
+    return jsonify([k.konto for k in konten])
+
+@app.route('/api/konten/rename', methods=['POST'])
+@login_required
+def rename_konto():
+    try:
+        data = request.get_json()
+        if not all(key in data for key in ['old_name', 'new_name']):
+            return jsonify({'success': False, 'error': 'Fehlende Felder'}), 400
+
+        old_name = data['old_name']
+        new_name = data['new_name']
+
+        if not old_name or not new_name:
+            return jsonify({'success': False, 'error': 'Kontoname darf nicht leer sein'}), 400
+
+        with db.atomic():
+            Kosten.update(konto=new_name).where(Kosten.konto == old_name).execute()
+            
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 if __name__ == '__main__':
     db.connect()
     db.create_tables([Kosten])

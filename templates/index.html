@@ -49,7 +49,12 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label for="konto">Konto</label>
-                                <input type="text" class="form-control" id="konto" required>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="konto" list="konten-list" required>
+                                    <datalist id="konten-list">
+                                        <!-- Wird dynamisch befüllt -->
+                                    </datalist>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-2">
