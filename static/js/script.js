@@ -1,3 +1,6 @@
+// Globale Variablen
+let tooltips = {};
+
 // Zahlungstage-Dropdown befüllen
 document.addEventListener('DOMContentLoaded', function() {
     const zahlungstagSelect = document.getElementById('zahlungstag');
@@ -14,7 +17,31 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const formData = {
             bezeichnung: document.getElementById('bezeichnung').value,
-            betrag: document.getElementById('betrag').value.replace(/\./g, '').replace(',', '.'), // Entferne Tausendertrennzeichen und konvertiere zu Dezimalpunkt
+            betrag: (() => {
+                const rawValue = document.getElementById('betrag').value;
+                console.log('Raw value:', rawValue);
+                
+                // Entferne zuerst alle nicht-numerischen Zeichen außer . und ,
+                let processedValue = rawValue
+                    .replace(/\s/g, '')
+                    .replace(/[^0-9,.]/g, '');
+                
+                // Wenn ein Komma vorhanden ist, nutze es als Dezimaltrennzeichen
+                if (processedValue.includes(',')) {
+                    processedValue = processedValue
+                        .replace(/\./g, '')  // Entferne alle Punkte (Tausendertrennzeichen)
+                        .replace(',', '.');   // Ersetze Komma durch Punkt
+                }
+                // Wenn kein Komma vorhanden ist, behalte den letzten Punkt als Dezimaltrennzeichen
+                else if (processedValue.includes('.')) {
+                    const parts = processedValue.split('.');
+                    // Behalte nur den letzten Teil nach dem Punkt
+                    processedValue = parts[0].replace(/\./g, '') + '.' + parts[parts.length - 1];
+                }
+                
+                console.log('Processed value:', processedValue);
+                return processedValue;
+            })(),
             zahlungstag: document.getElementById('zahlungstag').value,
             konto: document.getElementById('konto').value
         };

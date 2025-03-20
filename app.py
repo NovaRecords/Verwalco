@@ -98,6 +98,7 @@ def get_kosten():
 def add_kosten():
     try:
         data = request.get_json()
+        app.logger.debug(f'Received data: {data}')
         if not all(key in data for key in ['bezeichnung', 'betrag', 'zahlungstag', 'konto']):
             return jsonify({'success': False, 'error': 'Fehlende Felder'}), 400
 
@@ -106,9 +107,19 @@ def add_kosten():
                        .where(Kosten.konto == data['konto'])
                        .scalar() or -1)
 
+        # Stelle sicher, dass betrag ein gültiger Float ist
+        try:
+            betrag_str = str(data['betrag']).strip().replace(',', '.')
+            app.logger.debug(f'Processed betrag_str: {betrag_str}')
+            betrag = float(betrag_str)
+            app.logger.debug(f'Final betrag value: {betrag}')
+        except ValueError as e:
+            app.logger.debug(f'ValueError during conversion: {str(e)}')
+            return jsonify({'success': False, 'error': 'Ungültiges Zahlenformat für Betrag'}), 400
+
         kosten = Kosten.create(
             bezeichnung=data['bezeichnung'],
-            betrag=float(data['betrag']),
+            betrag=betrag,
             zahlungstag=int(data['zahlungstag']),
             konto=data['konto'],
             position=max_position + 1
