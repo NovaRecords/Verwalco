@@ -473,8 +473,18 @@ async function saveEdit(id) {
     const betragStr = row.querySelector('td:nth-child(3) input').value;
     console.log('Betrag from input:', betragStr);
     
-    // Convert German number format (comma) to international format (period)
-    const betrag = betragStr.replace(',', '.');
+    // Convert German number format to international format
+    const betrag = (() => {
+        let value = betragStr.trim();
+        if (value.includes(',')) {
+            // Split at last comma and remove dots from integer part
+            const parts = value.split(',');
+            const integerPart = parts[0].replace(/\./g, '');
+            const decimalPart = parts[1] || '0';
+            return integerPart + '.' + decimalPart;
+        }
+        return value;
+    })();
     console.log('Converted betrag:', betrag);
     
     const zahlungstag = row.querySelector('td:nth-child(5) select').value;

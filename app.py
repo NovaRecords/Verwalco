@@ -109,8 +109,13 @@ def add_kosten():
 
         # Stelle sicher, dass betrag ein gültiger Float ist
         try:
-            betrag_str = str(data['betrag']).strip().replace(',', '.')
-            app.logger.debug(f'Processed betrag_str: {betrag_str}')
+            betrag_str = str(data['betrag']).strip()
+            if ',' in betrag_str:
+                # Replace only the last comma with a dot and remove all dots (thousand separators)
+                parts = betrag_str.rsplit(',', 1)  # Split at last comma
+                integer_part = parts[0].replace('.', '')
+                decimal_part = parts[1] if len(parts) > 1 else '0'
+                betrag_str = f"{integer_part}.{decimal_part}"
             betrag = float(betrag_str)
             app.logger.debug(f'Final betrag value: {betrag}')
         except ValueError as e:
@@ -148,7 +153,15 @@ def update_kosten(id):
             kosten.bezahlt = data['bezahlt']
         else:
             kosten.bezeichnung = data['bezeichnung']
-            kosten.betrag = float(data['betrag'])
+            # Convert German number format to Python float
+            betrag_str = str(data['betrag'])
+            if ',' in betrag_str:
+                # Replace only the last comma with a dot and remove all dots (thousand separators)
+                parts = betrag_str.rsplit(',', 1)  # Split at last comma
+                integer_part = parts[0].replace('.', '')
+                decimal_part = parts[1] if len(parts) > 1 else '0'
+                betrag_str = f"{integer_part}.{decimal_part}"
+            kosten.betrag = float(betrag_str)
             kosten.zahlungstag = int(data['zahlungstag'])
             kosten.konto = data['konto']
         
