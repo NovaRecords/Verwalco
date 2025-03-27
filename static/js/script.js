@@ -134,12 +134,15 @@ function updateSumDisplay(konto) {
             kontoHeader.appendChild(newSumDisplay);
         }
         const displayElement = sumDisplay || kontoHeader.querySelector('.sum-display');
-        displayElement.textContent = `Summe: ${new Intl.NumberFormat('de-DE', { 
+        const formattedSum = new Intl.NumberFormat('de-DE', { 
             style: 'currency', 
             currency: 'EUR',
             minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }).format(selectedSums[konto])}`;
+            maximumFractionDigits: 2,
+            useGrouping: true
+        }).format(selectedSums[konto]);
+        
+        displayElement.textContent = `Summe: ${formattedSum}`;
         displayElement.style.display = 'inline-block';
     } else if (sumDisplay) {
         sumDisplay.style.display = 'none';
@@ -152,11 +155,16 @@ function updateSelectedSum(checkbox, betrag, konto) {
         selectedSums[konto] = 0;
     }
 
-    const amount = parseFloat(betrag.replace(',', '.'));
+    // Convert German number format to float
+    const amount = parseFloat(
+        betrag.replace(/\./g, '')  // Remove thousand separators
+             .replace(',', '.')     // Replace decimal comma with point
+    );
+
     if (checkbox.checked) {
-        selectedSums[konto] += amount;
+        selectedSums[konto] = (selectedSums[konto] * 100 + amount * 100) / 100; // Avoid floating point errors
     } else {
-        selectedSums[konto] -= amount;
+        selectedSums[konto] = (selectedSums[konto] * 100 - amount * 100) / 100; // Avoid floating point errors
         // Verhindere negative Werte durch Rundungsfehler
         if (Math.abs(selectedSums[konto]) < 0.01) {
             selectedSums[konto] = 0;
@@ -168,7 +176,7 @@ function updateSelectedSum(checkbox, betrag, konto) {
     // Aktualisiere die Gesamtsumme der ausgewählten Beträge
     let totalSelectedSum = 0;
     Object.values(selectedSums).forEach(sum => {
-        totalSelectedSum += sum;
+        totalSelectedSum = (totalSelectedSum * 100 + sum * 100) / 100; // Avoid floating point errors
     });
     
     // Zeige die Gesamtsumme der ausgewählten Beträge an
@@ -182,12 +190,15 @@ function updateSelectedSum(checkbox, betrag, konto) {
     
     const displayElement = document.getElementById('selected-total');
     if (totalSelectedSum > 0) {
-        displayElement.textContent = `Summe der ausgewählten Beträge: ${new Intl.NumberFormat('de-DE', { 
+        const formattedTotal = new Intl.NumberFormat('de-DE', { 
             style: 'currency', 
             currency: 'EUR',
             minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }).format(totalSelectedSum)}`;
+            maximumFractionDigits: 2,
+            useGrouping: true
+        }).format(totalSelectedSum);
+        
+        displayElement.textContent = `Summe der ausgewählten Beträge: ${formattedTotal}`;
         displayElement.style.display = 'block';
     } else {
         displayElement.style.display = 'none';
