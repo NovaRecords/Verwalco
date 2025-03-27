@@ -127,6 +127,7 @@ let selectedSums = {};
 function updateSumDisplay(konto) {
     const kontoHeader = document.querySelector(`.konto-group[data-konto="${konto}"] .konto-header`);
     const sumDisplay = kontoHeader.querySelector('.sum-display');
+    const renameButton = kontoHeader.querySelector('.btn-outline-secondary');
     
     if (selectedSums[konto] && selectedSums[konto] > 0) {
         if (!sumDisplay) {
@@ -145,8 +146,18 @@ function updateSumDisplay(konto) {
         
         displayElement.textContent = `Summe: ${formattedSum}`;
         displayElement.style.display = 'inline-block';
-    } else if (sumDisplay) {
-        sumDisplay.style.display = 'none';
+        // Hide rename button when sum is displayed
+        if (renameButton) {
+            renameButton.style.display = 'none';
+        }
+    } else {
+        if (sumDisplay) {
+            sumDisplay.style.display = 'none';
+        }
+        // Show rename button when no sum is displayed
+        if (renameButton) {
+            renameButton.style.display = 'inline-block';
+        }
     }
 }
 
