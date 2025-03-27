@@ -1,5 +1,6 @@
 // Globale Variablen
 let tooltips = {};
+let collapsedAccounts = new Set(JSON.parse(localStorage.getItem('collapsedAccounts') || '[]'));
 
 // Zahlungstage-Dropdown befüllen
 document.addEventListener('DOMContentLoaded', function() {
@@ -285,13 +286,30 @@ function displayKosten(kostenListe) {
         kontoGruppe.className = 'konto-group';
         kontoGruppe.dataset.konto = konto;
         
-        // Konto-Header mit Rename-Button
+        // Konto-Header mit Rename-Button und Toggle-Button
         const kontoHeader = document.createElement('div');
         kontoHeader.className = 'konto-header d-flex justify-content-between align-items-center';
         
-        const kontoTitle = document.createElement('h5');  
-        kontoTitle.className = 'mb-0';  
+        const headerLeft = document.createElement('div');
+        headerLeft.className = 'd-flex align-items-center';
+        
+        const toggleButton = document.createElement('button');
+        toggleButton.className = 'btn btn-link btn-sm me-2 toggle-btn';
+        toggleButton.innerHTML = collapsedAccounts.has(konto) ? 
+            '<i class="fas fa-chevron-right"></i>' : 
+            '<i class="fas fa-chevron-down"></i>';
+        toggleButton.style.textDecoration = 'none';
+        toggleButton.onclick = (e) => {
+            e.preventDefault();
+            toggleKontoCollapse(konto);
+        };
+        
+        const kontoTitle = document.createElement('h5');
+        kontoTitle.className = 'mb-0';
         kontoTitle.textContent = konto;
+        
+        headerLeft.appendChild(toggleButton);
+        headerLeft.appendChild(kontoTitle);
         
         const renameButton = document.createElement('button');
         renameButton.className = 'btn btn-outline-secondary btn-sm ms-2';
@@ -299,9 +317,17 @@ function displayKosten(kostenListe) {
         renameButton.title = 'Konto umbenennen';
         renameButton.onclick = () => renameKonto(konto);
         
-        kontoHeader.appendChild(kontoTitle);
+        kontoHeader.appendChild(headerLeft);
         kontoHeader.appendChild(renameButton);
         kontoGruppe.appendChild(kontoHeader);
+
+        const tableContainer = document.createElement('div');
+        tableContainer.className = 'table-container';
+        tableContainer.style.transition = 'height 0.3s ease-in-out';
+        if (collapsedAccounts.has(konto)) {
+            tableContainer.style.height = '0';
+            tableContainer.style.overflow = 'hidden';
+        }
 
         const table = document.createElement('table');
         table.className = 'table';
@@ -377,9 +403,42 @@ function displayKosten(kostenListe) {
             tbody.appendChild(tr);
         });
         
-        kontoGruppe.appendChild(table);
+        tableContainer.appendChild(table);
+        kontoGruppe.appendChild(tableContainer);
         kostenListeElement.appendChild(kontoGruppe);
     });
+}
+
+// Funktion zum Umschalten des Collapse-Status eines Kontos
+function toggleKontoCollapse(konto) {
+    const kontoGruppe = document.querySelector(`.konto-group[data-konto="${konto}"]`);
+    const tableContainer = kontoGruppe.querySelector('.table-container');
+    const toggleBtn = kontoGruppe.querySelector('.toggle-btn i');
+    const table = tableContainer.querySelector('table');
+    
+    if (collapsedAccounts.has(konto)) {
+        // Expand
+        const height = table.offsetHeight;
+        tableContainer.style.height = height + 'px';
+        toggleBtn.className = 'fas fa-chevron-down';
+        collapsedAccounts.delete(konto);
+        // After animation completes, remove fixed height
+        setTimeout(() => {
+            tableContainer.style.height = 'auto';
+        }, 300);
+    } else {
+        // Collapse
+        const height = table.offsetHeight;
+        tableContainer.style.height = height + 'px';
+        // Force a reflow
+        tableContainer.offsetHeight;
+        tableContainer.style.height = '0';
+        toggleBtn.className = 'fas fa-chevron-right';
+        collapsedAccounts.add(konto);
+    }
+    
+    // Save state to localStorage
+    localStorage.setItem('collapsedAccounts', JSON.stringify([...collapsedAccounts]));
 }
 
 // Drag and Drop Funktionalität

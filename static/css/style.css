@@ -27,6 +27,7 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
+    cursor: pointer;
 }
 .konto-name {
     margin-right: 10px;
@@ -136,4 +137,22 @@ td .form-check {
     border-radius: 4px;
     font-weight: bold;
     text-align: right;
+}
+
+.toggle-btn {
+    color: #ffffff;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-btn:hover {
+    color: #ebebeb;
+}
+
+.table-container {
+    overflow: hidden;
 }
