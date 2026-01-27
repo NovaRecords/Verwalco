@@ -1,0 +1,17 @@
+[Unit]
+Description=Verwalco Flask Application
+After=network.target
+
+[Service]
+Type=notify
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/verwalco
+Environment="PATH=/var/www/verwalco/venv/bin"
+EnvironmentFile=/var/www/verwalco/.env
+ExecStart=/var/www/verwalco/venv/bin/gunicorn --workers 3 --bind unix:verwalco.sock -m 007 app:app
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
