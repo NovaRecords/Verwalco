@@ -2,6 +2,12 @@
 let tooltips = {};
 let collapsedAccounts = new Set(JSON.parse(localStorage.getItem('collapsedAccounts') || '[]'));
 
+// Monats-Navigation
+let currentMonth = new Date().getMonth() + 1; // 1-12
+let currentYear = new Date().getFullYear();
+const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 
+                    'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+
 // Zahlungstage-Dropdown befüllen
 document.addEventListener('DOMContentLoaded', function() {
     const zahlungstagSelect = document.getElementById('zahlungstag');
@@ -44,7 +50,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 return processedValue;
             })(),
             zahlungstag: document.getElementById('zahlungstag').value,
-            konto: document.getElementById('konto').value
+            konto: document.getElementById('konto').value,
+            cost_type: document.getElementById('cost_type').value
         };
 
         try {
@@ -68,10 +75,71 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Monats-Navigation Event-Listener
+    document.getElementById('prevMonth').addEventListener('click', function() {
+        changeMonth(-1);
+    });
+    
+    document.getElementById('nextMonth').addEventListener('click', function() {
+        changeMonth(1);
+    });
+    
     // Initial laden
+    updateMonthDisplay();
     loadKosten();
     loadKonten();
 });
+
+// Monats-Anzeige aktualisieren
+async function updateMonthDisplay() {
+    const monthYearElement = document.getElementById('currentMonthYear');
+    monthYearElement.textContent = `${monthNames[currentMonth - 1]} ${currentYear}`;
+    
+    // Berechne nächsten Monat
+    let nextMonth = currentMonth + 1;
+    let nextYear = currentYear;
+    if (nextMonth > 12) {
+        nextMonth = 1;
+        nextYear++;
+    }
+    
+    // Prüfe ob nächster Monat existiert
+    try {
+        const response = await fetch(`/api/kosten?month=${nextMonth}&year=${nextYear}`);
+        const kosten = await response.json();
+        // Aktiviere Button nur wenn Daten existieren
+        document.getElementById('nextMonth').disabled = kosten.length === 0;
+    } catch (error) {
+        document.getElementById('nextMonth').disabled = true;
+    }
+    
+    // Prüfe ob "Vorheriger Monat" Button deaktiviert werden soll (6 Monate zurück)
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    const minMonth = sixMonthsAgo.getMonth() + 1;
+    const minYear = sixMonthsAgo.getFullYear();
+    
+    const isMinMonth = (currentYear === minYear && currentMonth === minMonth) || 
+                       (currentYear === minYear && currentMonth < minMonth) ||
+                       (currentYear < minYear);
+    document.getElementById('prevMonth').disabled = isMinMonth;
+}
+
+// Monat wechseln
+function changeMonth(direction) {
+    currentMonth += direction;
+    
+    if (currentMonth > 12) {
+        currentMonth = 1;
+        currentYear++;
+    } else if (currentMonth < 1) {
+        currentMonth = 12;
+        currentYear--;
+    }
+    
+    updateMonthDisplay();
+    loadKosten();
+}
 
 // Konten laden und Datalist aktualisieren
 async function loadKonten() {
@@ -91,6 +159,33 @@ async function loadKonten() {
 }
 
 // Funktion zum Umbenennen eines Kontos
+async function toggleKontoExclude(konto) {
+    try {
+        const response = await fetch('/api/konto/toggle-exclude', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                konto: konto,
+                month: currentMonth,
+                year: currentYear
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            loadKosten(); // Neu laden um Button-Status zu aktualisieren
+        } else {
+            alert(`Fehler: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Fehler beim Umschalten des Konto-Status');
+    }
+}
+
 async function renameKonto(oldName) {
     const newName = prompt('Neuer Name für Konto "' + oldName + '":', oldName);
     if (newName && newName !== oldName) {
@@ -264,7 +359,7 @@ function groupByKonto(kosten) {
 
 // Kosten laden
 async function loadKosten() {
-    const response = await fetch('/api/kosten');
+    const response = await fetch(`/api/kosten?month=${currentMonth}&year=${currentYear}`);
     const kosten = await response.json();
     displayKosten(kosten);
 }
@@ -277,10 +372,10 @@ function displayKosten(kostenListe) {
     kostenListeElement.innerHTML = '';
     selectedSums = {}; // Reset der Summen beim Neuladen
     
-    // Gesamtsumme berechnen
+    // Gesamtsumme berechnen (ohne ausgeschlossene Konten)
     let gesamtsumme = 0;
     kostenListe.forEach(k => {
-        if (!k.bezahlt) {
+        if (!k.bezahlt && !k.exclude_from_total) {
             const betrag = Number(k.betrag);
             gesamtsumme += betrag;
         }
@@ -294,7 +389,8 @@ function displayKosten(kostenListe) {
 
     Object.keys(kontoGruppen).sort().forEach(konto => {
         const kontoGruppe = document.createElement('div');
-        kontoGruppe.className = 'konto-group';
+        const isExcluded = kontoGruppen[konto][0]?.exclude_from_total || false;
+        kontoGruppe.className = `konto-group ${isExcluded ? 'excluded' : ''}`;
         kontoGruppe.dataset.konto = konto;
         
         // Konto-Header mit Rename-Button und Toggle-Button
@@ -322,14 +418,26 @@ function displayKosten(kostenListe) {
         headerLeft.appendChild(toggleButton);
         headerLeft.appendChild(kontoTitle);
         
+        const headerRight = document.createElement('div');
+        headerRight.className = 'd-flex align-items-center gap-2';
+        
+        const excludeButton = document.createElement('button');
+        excludeButton.className = `btn btn-sm ms-2 ${isExcluded ? 'btn-warning' : 'btn-outline-secondary'}`;
+        excludeButton.innerHTML = '<i class="fas fa-euro-sign" style="text-decoration: line-through;"></i>';
+        excludeButton.setAttribute('data-tooltip', isExcluded ? 'In Gesamtsumme einbeziehen' : 'Von Gesamtsumme ausschließen');
+        excludeButton.onclick = () => toggleKontoExclude(konto);
+        
         const renameButton = document.createElement('button');
-        renameButton.className = 'btn btn-outline-secondary btn-sm ms-2';
+        renameButton.className = 'btn btn-outline-secondary btn-sm';
         renameButton.innerHTML = '<i class="fas fa-edit"></i>';
-        renameButton.title = 'Konto umbenennen';
+        renameButton.setAttribute('data-tooltip', 'Konto umbenennen');
         renameButton.onclick = () => renameKonto(konto);
         
+        headerRight.appendChild(excludeButton);
+        headerRight.appendChild(renameButton);
+        
         kontoHeader.appendChild(headerLeft);
-        kontoHeader.appendChild(renameButton);
+        kontoHeader.appendChild(headerRight);
         kontoGruppe.appendChild(kontoHeader);
 
         const tableContainer = document.createElement('div');
@@ -365,7 +473,10 @@ function displayKosten(kostenListe) {
             tr.draggable = true;
             tr.dataset.id = k.id;
             tr.dataset.konto = konto;
-            tr.className = 'draggable';
+            
+            // Farbliche Kennzeichnung der Zeile basierend auf Kostentyp
+            const costType = k.cost_type || 'recurring';
+            tr.className = `draggable ${costType === 'recurring' ? 'recurring-row' : 'one-time-row'}`;
             
             tr.addEventListener('dragstart', handleDragStart);
             tr.addEventListener('dragend', handleDragEnd);
@@ -377,6 +488,11 @@ function displayKosten(kostenListe) {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             }).format(parseFloat(k.betrag));
+            
+            // Button für Kostentyp mit Symbol (data-title für CSS-Tooltip)
+            const costTypeButton = costType === 'recurring' 
+                ? `<button class="btn btn-sm cost-type-btn-recurring" onclick="toggleCostType(${k.id})" data-tooltip="Wiederkehrende Kosten"><i class="fas fa-sync-alt"></i></button>`
+                : `<button class="btn btn-sm cost-type-btn-one-time" onclick="toggleCostType(${k.id})" data-tooltip="Einmalige Kosten"><i class="fas fa-calendar-check"></i></button>`;
             
             tr.innerHTML = `
                 <td>
@@ -402,10 +518,11 @@ function displayKosten(kostenListe) {
                     </div>
                 </td>
                 <td class="col-aktionen">
-                    <button class="btn btn-sm btn-primary" onclick="startEdit(${k.id})">
+                    ${costTypeButton}
+                    <button class="btn btn-sm btn-primary" onclick="startEdit(${k.id})" data-tooltip="Bearbeiten">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteKosten(${k.id})">
+                    <button class="btn btn-sm btn-danger" onclick="deleteKosten(${k.id})" data-tooltip="Löschen">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
@@ -625,12 +742,12 @@ async function updateBezahlt(id, bezahlt) {
             }
         }
 
-        // Aktualisiere nur die Gesamtsumme
-        const kostenResponse = await fetch('/api/kosten');
+        // Aktualisiere nur die Gesamtsumme (ohne ausgeschlossene Konten)
+        const kostenResponse = await fetch(`/api/kosten?month=${currentMonth}&year=${currentYear}`);
         const kostenListe = await kostenResponse.json();
         let gesamtsumme = 0;
         kostenListe.forEach(k => {
-            if (!k.bezahlt) {
+            if (!k.bezahlt && !k.exclude_from_total) {
                 const betrag = Number(k.betrag);
                 gesamtsumme += betrag;
             }
@@ -648,6 +765,42 @@ async function updateBezahlt(id, bezahlt) {
         if (checkbox) {
             checkbox.checked = !bezahlt;
         }
+    }
+}
+
+async function toggleCostType(id) {
+    try {
+        // Hole aktuelle Daten
+        const response = await fetch('/api/kosten');
+        const kosten = await response.json();
+        const currentKosten = kosten.find(k => k.id === id);
+        
+        if (!currentKosten) {
+            console.error('Kosten nicht gefunden');
+            return;
+        }
+        
+        // Toggle zwischen recurring und one-time
+        const newCostType = currentKosten.cost_type === 'recurring' ? 'one-time' : 'recurring';
+        
+        // Update durchführen
+        const updateResponse = await fetch(`/api/kosten/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                cost_type: newCostType
+            })
+        });
+
+        if (updateResponse.ok) {
+            loadKosten();
+        } else {
+            console.error('Fehler beim Aktualisieren des Kostentyps');
+        }
+    } catch (error) {
+        console.error('Error:', error);
     }
 }
 

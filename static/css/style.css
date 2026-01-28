@@ -156,3 +156,113 @@ td .form-check {
 .table-container {
     overflow: hidden;
 }
+
+/* Kostentyp-Buttons */
+.cost-type-btn-recurring,
+.cost-type-btn-one-time {
+    width: 31px;
+    height: 31px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 5px;
+    border: none;
+    transition: all 0.2s;
+}
+
+.cost-type-btn-recurring {
+    background-color: #add8e6;
+    color: #1e3a5f;
+}
+
+.cost-type-btn-recurring:hover {
+    background-color: #8fc5e0;
+    color: #1e3a5f;
+}
+
+.cost-type-btn-one-time {
+    background-color: #9edf9e;
+    color: #1e5f1e;
+}
+
+.cost-type-btn-one-time:hover {
+    background-color: #92d092;
+    color: #1e5f1e;
+}
+
+/* Zeilen-Hintergrund basierend auf Kostentyp */
+tr.recurring-row {
+    background-color: rgba(173, 216, 230, 0.1) !important;
+}
+
+tr.one-time-row {
+    background-color: rgba(144, 238, 144, 0.1) !important;
+}
+
+/* Ausgeschlossene Konten */
+.konto-group.excluded {
+    opacity: 0.6;
+}
+
+.konto-group.excluded .konto-header {
+    background-color: #6c757d;
+}
+
+/* Schnelle Tooltips für Buttons */
+.col-aktionen button,
+.konto-header button {
+    position: relative;
+}
+
+.col-aktionen button[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease-in-out;
+    margin-bottom: 8px;
+    z-index: 10000;
+    min-width: max-content;
+}
+
+/* Letzter Button (Löschen) - Tooltip nach rechts ausrichten */
+.col-aktionen button.btn-danger[data-tooltip]::after {
+    left: auto;
+    right: 0;
+    transform: none;
+}
+
+.konto-header button[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    transform: none;
+    background-color: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease-in-out;
+    margin-bottom: 8px;
+    z-index: 10000;
+    min-width: max-content;
+}
+
+.col-aktionen button[data-tooltip]:hover::after,
+.konto-header button[data-tooltip]:hover::after {
+    opacity: 1;
+}

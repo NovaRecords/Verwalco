@@ -75,6 +75,10 @@ class Kosten(BaseModel):
     konto = CharField()
     bezahlt = BooleanField(default=False)
     position = IntegerField(default=0)
+    cost_type = CharField(default='recurring')  # 'recurring' oder 'one-time'
+    month = IntegerField(default=lambda: datetime.now().month)  # 1-12
+    year = IntegerField(default=lambda: datetime.now().year)  # z.B. 2026
+    exclude_from_total = BooleanField(default=False)  # Konto aus Gesamtkalkulation ausschließen
 
     class Meta:
         table_name = 'kosten'
@@ -242,16 +246,19 @@ def index():
 
 @app.before_request
 def before_request():
+    db.connect(reuse_if_open=True)
+    
     if not request.endpoint:
         return
 
     if request.endpoint.startswith('static'):
         return
 
-    if request.endpoint not in ['login', 'register', 'forgot_password', 'reset_password'] and 'user_id' not in session:
+    # Öffentliche Routen, die ohne Login erreichbar sind
+    public_routes = ['login', 'register', 'forgot_password', 'reset_password']
+    
+    if request.endpoint not in public_routes and 'user_id' not in session:
         return redirect('/login')
-
-    db.connect(reuse_if_open=True)
 
 @app.after_request
 def after_request(response):
@@ -265,7 +272,26 @@ def get_kosten():
     if not user:
         return jsonify({'success': False, 'error': 'Nicht authentifiziert'}), 401
     
-    kosten = list(Kosten.select().where(Kosten.user == user).order_by(Kosten.konto, Kosten.position, Kosten.zahlungstag))
+    # Monat und Jahr aus Query-Parametern holen
+    month = request.args.get('month', type=int)
+    year = request.args.get('year', type=int)
+    
+    # Wenn Monat und Jahr angegeben sind, filtern
+    if month and year:
+        kosten = list(Kosten.select().where(
+            (Kosten.user == user) & 
+            (Kosten.month == month) & 
+            (Kosten.year == year)
+        ).order_by(Kosten.konto, Kosten.position, Kosten.zahlungstag))
+    else:
+        # Fallback: Alle Kosten des aktuellen Monats
+        now = datetime.now()
+        kosten = list(Kosten.select().where(
+            (Kosten.user == user) & 
+            (Kosten.month == now.month) & 
+            (Kosten.year == now.year)
+        ).order_by(Kosten.konto, Kosten.position, Kosten.zahlungstag))
+    
     return jsonify([model_to_dict(k) for k in kosten])
 
 @app.route('/api/kosten', methods=['POST'])
@@ -307,7 +333,10 @@ def add_kosten():
             betrag=betrag,
             zahlungstag=int(data['zahlungstag']),
             konto=data['konto'],
-            position=max_position + 1
+            position=max_position + 1,
+            cost_type=data.get('cost_type', 'recurring'),
+            month=data.get('month', datetime.now().month),
+            year=data.get('year', datetime.now().year)
         )
         
         return jsonify({
@@ -333,8 +362,10 @@ def update_kosten(id):
         if not kosten:
             return jsonify({'success': False, 'error': 'Eintrag nicht gefunden'}), 404
 
-        if 'bezahlt' in data:
+        if 'bezahlt' in data and len(data) == 1:
             kosten.bezahlt = data['bezahlt']
+        elif 'cost_type' in data and len(data) == 1:
+            kosten.cost_type = data['cost_type']
         else:
             kosten.bezeichnung = data['bezeichnung']
             # Convert German number format to Python float
@@ -348,6 +379,8 @@ def update_kosten(id):
             kosten.betrag = float(betrag_str)
             kosten.zahlungstag = int(data['zahlungstag'])
             kosten.konto = data['konto']
+            if 'cost_type' in data:
+                kosten.cost_type = data['cost_type']
         
         kosten.save()
         return jsonify({
@@ -390,6 +423,106 @@ def reorder_kosten():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+def create_new_month(user, target_month, target_year):
+    """
+    Erstellt einen neuen Monat mit Kosten aus dem Vormonat.
+    
+    Logik:
+    - Wiederkehrende Kosten: werden kopiert, bezahlt=False
+    - Einmalige Kosten: werden kopiert, bezahlt-Status bleibt erhalten
+    """
+    # Vormonat berechnen
+    if target_month == 1:
+        prev_month = 12
+        prev_year = target_year - 1
+    else:
+        prev_month = target_month - 1
+        prev_year = target_year
+    
+    # Prüfe ob der Zielmonat bereits existiert
+    existing = Kosten.select().where(
+        (Kosten.user == user) & 
+        (Kosten.month == target_month) & 
+        (Kosten.year == target_year)
+    ).count()
+    
+    if existing > 0:
+        return {'success': False, 'error': f'Monat {target_month}/{target_year} existiert bereits'}
+    
+    # Hole alle Kosten aus dem Vormonat
+    prev_kosten = list(Kosten.select().where(
+        (Kosten.user == user) & 
+        (Kosten.month == prev_month) & 
+        (Kosten.year == prev_year)
+    ))
+    
+    if not prev_kosten:
+        return {'success': False, 'error': f'Keine Kosten im Vormonat {prev_month}/{prev_year} gefunden'}
+    
+    # Kopiere Kosten in den neuen Monat
+    created_count = 0
+    for kosten in prev_kosten:
+        # Bestimme bezahlt-Status und ob Kosten übernommen werden sollen
+        if kosten.cost_type == 'recurring':
+            # Wiederkehrende Kosten: immer übernehmen, unbezahlt
+            bezahlt = False
+        else:  # one-time
+            # Einmalige Kosten: nur übernehmen wenn unbezahlt
+            if kosten.bezahlt:
+                continue  # Überspringe bezahlte einmalige Kosten
+            bezahlt = False  # Unbezahlte einmalige Kosten bleiben unbezahlt
+        
+        # Erstelle neue Kosten für den Zielmonat
+        Kosten.create(
+            user=user,
+            bezeichnung=kosten.bezeichnung,
+            betrag=kosten.betrag,
+            zahlungstag=kosten.zahlungstag,
+            konto=kosten.konto,
+            bezahlt=bezahlt,
+            position=kosten.position,
+            cost_type=kosten.cost_type,
+            month=target_month,
+            year=target_year,
+            exclude_from_total=kosten.exclude_from_total  # Ausschluss-Status übernehmen
+        )
+        created_count += 1
+    
+    return {
+        'success': True, 
+        'message': f'{created_count} Kosten für {target_month}/{target_year} erstellt',
+        'count': created_count
+    }
+
+@app.route('/api/create-month', methods=['POST'])
+@login_required
+def api_create_month():
+    """
+    Manueller Endpoint zum Erstellen eines neuen Monats.
+    Erwartet: {"month": 2, "year": 2026}
+    """
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({'success': False, 'error': 'Nicht authentifiziert'}), 401
+        
+        data = request.get_json()
+        target_month = data.get('month')
+        target_year = data.get('year')
+        
+        if not target_month or not target_year:
+            return jsonify({'success': False, 'error': 'Monat und Jahr erforderlich'}), 400
+        
+        result = create_new_month(user, target_month, target_year)
+        
+        if result['success']:
+            return jsonify(result), 200
+        else:
+            return jsonify(result), 400
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/konten', methods=['GET'])
 @login_required
 def get_konten():
@@ -403,6 +536,57 @@ def get_konten():
               .distinct()
               .order_by(Kosten.konto))
     return jsonify([k.konto for k in konten])
+
+@app.route('/api/konto/toggle-exclude', methods=['POST'])
+@login_required
+def toggle_konto_exclude():
+    """
+    Schaltet das exclude_from_total Flag für alle Kosten eines Kontos um.
+    Erwartet: {"konto": "Kontoname", "month": 1, "year": 2026}
+    """
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({'success': False, 'error': 'Nicht authentifiziert'}), 401
+        
+        data = request.get_json()
+        konto = data.get('konto')
+        month = data.get('month')
+        year = data.get('year')
+        
+        if not konto or not month or not year:
+            return jsonify({'success': False, 'error': 'Konto, Monat und Jahr erforderlich'}), 400
+        
+        # Hole eine Kosten des Kontos um den aktuellen Status zu prüfen
+        sample = Kosten.get_or_none(
+            (Kosten.user == user) & 
+            (Kosten.konto == konto) & 
+            (Kosten.month == month) & 
+            (Kosten.year == year)
+        )
+        
+        if not sample:
+            return jsonify({'success': False, 'error': 'Konto nicht gefunden'}), 404
+        
+        # Toggle den Status
+        new_status = not sample.exclude_from_total
+        
+        # Update alle Kosten dieses Kontos im aktuellen Monat
+        Kosten.update(exclude_from_total=new_status).where(
+            (Kosten.user == user) & 
+            (Kosten.konto == konto) & 
+            (Kosten.month == month) & 
+            (Kosten.year == year)
+        ).execute()
+        
+        return jsonify({
+            'success': True,
+            'excluded': new_status,
+            'konto': konto
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/konten/rename', methods=['POST'])
 @login_required
