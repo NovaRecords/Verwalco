@@ -95,6 +95,10 @@ async function updateMonthDisplay() {
     const monthYearElement = document.getElementById('currentMonthYear');
     monthYearElement.textContent = `${monthNames[currentMonth - 1]} ${currentYear}`;
     
+    // Prüfe ob wir am aktuellen Monat sind
+    const now = new Date();
+    const isCurrentMonth = currentMonth === (now.getMonth() + 1) && currentYear === now.getFullYear();
+    
     // Berechne nächsten Monat
     let nextMonth = currentMonth + 1;
     let nextYear = currentYear;
@@ -103,14 +107,19 @@ async function updateMonthDisplay() {
         nextYear++;
     }
     
-    // Prüfe ob nächster Monat existiert
-    try {
-        const response = await fetch(`/api/kosten?month=${nextMonth}&year=${nextYear}`);
-        const kosten = await response.json();
-        // Aktiviere Button nur wenn Daten existieren
-        document.getElementById('nextMonth').disabled = kosten.length === 0;
-    } catch (error) {
-        document.getElementById('nextMonth').disabled = true;
+    // Nächster Monat Button: aktivieren wenn nicht am aktuellen Monat ODER wenn Daten existieren
+    if (isCurrentMonth) {
+        // Am aktuellen Monat: nur aktivieren wenn nächster Monat Daten hat
+        try {
+            const response = await fetch(`/api/kosten?month=${nextMonth}&year=${nextYear}`);
+            const kosten = await response.json();
+            document.getElementById('nextMonth').disabled = kosten.length === 0;
+        } catch (error) {
+            document.getElementById('nextMonth').disabled = true;
+        }
+    } else {
+        // Nicht am aktuellen Monat: immer aktivieren (um zurück zu navigieren)
+        document.getElementById('nextMonth').disabled = false;
     }
     
     // Prüfe ob "Vorheriger Monat" Button deaktiviert werden soll (6 Monate zurück)
