@@ -613,9 +613,16 @@ def rename_konto():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-if __name__ == '__main__':
+# Datenbank-Initialisierung (wird auch mit Gunicorn ausgeführt)
+def init_db():
+    """Erstellt die Datenbank-Tabellen, falls sie nicht existieren"""
     db.connect()
-    db.create_tables([User, PasswordReset, Kosten])
+    db.create_tables([User, PasswordReset, Kosten], safe=True)
     db.close()
+
+# Initialisiere Datenbank beim App-Start
+init_db()
+
+if __name__ == '__main__':
     # Debug-Modus nur für lokale Entwicklung
     app.run(host='0.0.0.0', port=8000, debug=os.environ.get('FLASK_ENV') != 'production')
