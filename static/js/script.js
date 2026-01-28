@@ -107,8 +107,14 @@ async function updateMonthDisplay() {
         nextYear++;
     }
     
-    // Nächster Monat Button: aktivieren wenn nicht am aktuellen Monat ODER wenn Daten existieren
-    if (isCurrentMonth) {
+    // Nächster Monat Button: aktivieren wenn wir in der Vergangenheit sind ODER wenn Daten im nächsten Monat existieren
+    const currentDate = new Date(currentYear, currentMonth - 1);
+    const todayDate = new Date(now.getFullYear(), now.getMonth());
+    
+    if (currentDate < todayDate) {
+        // Wir sind in der Vergangenheit: immer aktivieren (um zur Gegenwart zu navigieren)
+        document.getElementById('nextMonth').disabled = false;
+    } else if (isCurrentMonth) {
         // Am aktuellen Monat: nur aktivieren wenn nächster Monat Daten hat
         try {
             const response = await fetch(`/api/kosten?month=${nextMonth}&year=${nextYear}`);
@@ -118,8 +124,8 @@ async function updateMonthDisplay() {
             document.getElementById('nextMonth').disabled = true;
         }
     } else {
-        // Nicht am aktuellen Monat: immer aktivieren (um zurück zu navigieren)
-        document.getElementById('nextMonth').disabled = false;
+        // In der Zukunft: deaktivieren
+        document.getElementById('nextMonth').disabled = true;
     }
     
     // Prüfe ob "Vorheriger Monat" Button deaktiviert werden soll (6 Monate zurück)
