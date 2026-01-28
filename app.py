@@ -461,6 +461,8 @@ def create_new_month(user, target_month, target_year):
     
     # Kopiere Kosten in den neuen Monat
     created_count = 0
+    one_time_ids_to_delete = []  # IDs der unbezahlten einmaligen Kosten zum Löschen
+    
     for kosten in prev_kosten:
         # Bestimme bezahlt-Status und ob Kosten übernommen werden sollen
         if kosten.cost_type == 'recurring':
@@ -471,6 +473,7 @@ def create_new_month(user, target_month, target_year):
             if kosten.bezahlt:
                 continue  # Überspringe bezahlte einmalige Kosten
             bezahlt = False  # Unbezahlte einmalige Kosten bleiben unbezahlt
+            one_time_ids_to_delete.append(kosten.id)  # Merke ID zum Löschen
         
         # Erstelle neue Kosten für den Zielmonat
         Kosten.create(
@@ -488,10 +491,15 @@ def create_new_month(user, target_month, target_year):
         )
         created_count += 1
     
+    # Lösche unbezahlte einmalige Kosten aus dem alten Monat
+    if one_time_ids_to_delete:
+        Kosten.delete().where(Kosten.id.in_(one_time_ids_to_delete)).execute()
+    
     return {
         'success': True, 
         'message': f'{created_count} Kosten für {target_month}/{target_year} erstellt',
-        'count': created_count
+        'count': created_count,
+        'deleted_one_time': len(one_time_ids_to_delete)
     }
 
 @app.route('/api/create-month', methods=['POST'])
