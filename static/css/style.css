@@ -278,3 +278,8 @@ tr.one-time-row {
     font-size: 1.1rem;
     margin-bottom: 0;
 }
+
+/* Schriftgröße der Summen-Zahlen */
+.card-body .row h3 {
+    font-size: 2rem;
+}
