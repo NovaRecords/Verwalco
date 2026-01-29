@@ -328,15 +328,15 @@ tr.one-time-row {
 
 /* Anmelden-Button (Login) */
 .btn-login {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-    color: white;
+    background-color: #3b6197 !important;
+    border-color: #3b6197 !important;
+    color: white !important;
 }
 
 .btn-login:hover {
-    background-color: #0b5ed7;
-    border-color: #0a58ca;
-    color: white;
+    background-color: #5f86be !important;
+    border-color: #5f86be !important;
+    color: white !important;
 }
 
 /* Login-Links (Passwort vergessen, Registrieren) */
