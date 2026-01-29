@@ -312,3 +312,50 @@ tr.one-time-row {
     border-color: #ba5761;
     color: white;
 }
+
+/* Hinzufügen-Button (Grün) */
+.btn-add {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+
+.btn-add:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+    color: white;
+}
+
+/* Anmelden-Button (Login) */
+.btn-login {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+}
+
+.btn-login:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+    color: white;
+}
+
+/* Login-Links (Passwort vergessen, Registrieren) */
+.link-forgot-password {
+    color: #6c9bd1;
+    text-decoration: none;
+}
+
+.link-forgot-password:hover {
+    color: #8fb3dc;
+    text-decoration: underline;
+}
+
+.link-register {
+    color: #6c9bd1;
+    text-decoration: none;
+}
+
+.link-register:hover {
+    color: #8fb3dc;
+    text-decoration: underline;
+}
