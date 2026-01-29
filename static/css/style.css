@@ -182,12 +182,12 @@ td .form-check {
 }
 
 .cost-type-btn-one-time {
-    background-color: #9edf9e;
+    background-color: #c3e0b4;
     color: #1e5f1e;
 }
 
 .cost-type-btn-one-time:hover {
-    background-color: #92d092;
+    background-color: #a2c690;
     color: #1e5f1e;
 }
 
@@ -289,26 +289,26 @@ tr.one-time-row {
 
 /* Bearbeiten-Button (Blau) */
 .btn-edit {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
+    background-color: #3b6197;
+    border-color: #3b6197;
     color: white;
 }
 
 .btn-edit:hover {
-    background-color: #0b5ed7;
-    border-color: #0a58ca;
+    background-color: #5f86be;
+    border-color: #5f86be;
     color: white;
 }
 
 /* Löschen-Button (Rot) */
 .btn-delete {
-    background-color: #dc3545;
-    border-color: #dc3545;
+    background-color: #aa404a;
+    border-color: #aa404a;
     color: white;
 }
 
 .btn-delete:hover {
-    background-color: #bb2d3b;
-    border-color: #b02a37;
+    background-color: #ba5761;
+    border-color: #ba5761;
     color: white;
 }
