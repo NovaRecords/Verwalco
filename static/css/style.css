@@ -276,11 +276,12 @@ tr.one-time-row {
 /* Schriftgröße der Summen-Beschriftungen */
 .card-body .row .card-title {
     font-size: 1.1rem;
-    margin-bottom: 0;
+    margin-top: 6px;
+    margin-bottom: 0px;
 }
 
 /* Schriftgröße der Summen-Zahlen */
 .card-body .row h3 {
-    font-size: 2.1rem;
-    font-weight: 300;
+    font-size: 2.0rem;
+    font-weight: 200;
 }
