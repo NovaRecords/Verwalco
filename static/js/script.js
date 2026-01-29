@@ -387,20 +387,45 @@ function displayKosten(kostenListe) {
     kostenListeElement.innerHTML = '';
     selectedSums = {}; // Reset der Summen beim Neuladen
     
-    // Gesamtsumme berechnen (ohne ausgeschlossene Konten)
-    let gesamtsumme = 0;
+    // Summen berechnen (ohne ausgeschlossene Konten)
+    let unbezahlteSumme = 0;
+    let bezahlteSumme = 0;
+    let gesamtsummeTotal = 0;
+    
     kostenListe.forEach(k => {
-        if (!k.bezahlt && !k.exclude_from_total) {
+        if (!k.exclude_from_total) {
             const betrag = Number(k.betrag);
-            gesamtsumme += betrag;
+            gesamtsummeTotal += betrag;
+            
+            if (k.bezahlt) {
+                bezahlteSumme += betrag;
+            } else {
+                unbezahlteSumme += betrag;
+            }
         }
     });
+    
+    // Aktualisiere alle 3 Summen-Anzeigen
+    document.getElementById('bezahlteSumme').textContent = new Intl.NumberFormat('de-DE', { 
+        style: 'currency', 
+        currency: 'EUR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(bezahlteSumme);
+    
+    document.getElementById('gesamtsummeTotal').textContent = new Intl.NumberFormat('de-DE', { 
+        style: 'currency', 
+        currency: 'EUR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(gesamtsummeTotal);
+    
     document.getElementById('gesamtsumme').textContent = new Intl.NumberFormat('de-DE', { 
         style: 'currency', 
         currency: 'EUR',
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
-    }).format(gesamtsumme);
+    }).format(unbezahlteSumme);
 
     Object.keys(kontoGruppen).sort().forEach(konto => {
         const kontoGruppe = document.createElement('div');
@@ -757,22 +782,47 @@ async function updateBezahlt(id, bezahlt) {
             }
         }
 
-        // Aktualisiere nur die Gesamtsumme (ohne ausgeschlossene Konten)
+        // Aktualisiere alle 3 Summen (ohne ausgeschlossene Konten)
         const kostenResponse = await fetch(`/api/kosten?month=${currentMonth}&year=${currentYear}`);
         const kostenListe = await kostenResponse.json();
-        let gesamtsumme = 0;
+        
+        let unbezahlteSumme = 0;
+        let bezahlteSumme = 0;
+        let gesamtsummeTotal = 0;
+        
         kostenListe.forEach(k => {
-            if (!k.bezahlt && !k.exclude_from_total) {
+            if (!k.exclude_from_total) {
                 const betrag = Number(k.betrag);
-                gesamtsumme += betrag;
+                gesamtsummeTotal += betrag;
+                
+                if (k.bezahlt) {
+                    bezahlteSumme += betrag;
+                } else {
+                    unbezahlteSumme += betrag;
+                }
             }
         });
+        
+        document.getElementById('bezahlteSumme').textContent = new Intl.NumberFormat('de-DE', { 
+            style: 'currency', 
+            currency: 'EUR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(bezahlteSumme);
+        
+        document.getElementById('gesamtsummeTotal').textContent = new Intl.NumberFormat('de-DE', { 
+            style: 'currency', 
+            currency: 'EUR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(gesamtsummeTotal);
+        
         document.getElementById('gesamtsumme').textContent = new Intl.NumberFormat('de-DE', { 
             style: 'currency', 
             currency: 'EUR',
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
-        }).format(gesamtsumme);
+        }).format(unbezahlteSumme);
     } catch (error) {
         console.error('Error updating bezahlt status:', error);
         // Checkbox auf den vorherigen Zustand zurücksetzen
