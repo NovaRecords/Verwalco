@@ -272,3 +272,8 @@ tr.one-time-row {
     margin-left: calc(-0.3 * var(--bs-gutter-x));
     margin-right: calc(-0.3 * var(--bs-gutter-x));
 }
+
+/* Schriftgröße der Summen-Beschriftungen */
+.card-body .row .card-title {
+    font-size: 1.1rem;
+}
