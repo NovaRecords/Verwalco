@@ -236,7 +236,7 @@ tr.one-time-row {
 }
 
 /* Letzter Button (Löschen) - Tooltip nach rechts ausrichten */
-.col-aktionen button.btn-danger[data-tooltip]::after {
+.col-aktionen button.btn-delete[data-tooltip]::after {
     left: auto;
     right: 0;
     transform: none;
@@ -285,4 +285,30 @@ tr.one-time-row {
 .card-body .row h3 {
     font-size: 1.8rem;
     font-weight: 300;
+}
+
+/* Bearbeiten-Button (Blau) */
+.btn-edit {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+}
+
+.btn-edit:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+    color: white;
+}
+
+/* Löschen-Button (Rot) */
+.btn-delete {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+.btn-delete:hover {
+    background-color: #bb2d3b;
+    border-color: #b02a37;
+    color: white;
 }

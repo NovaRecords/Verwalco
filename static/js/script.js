@@ -559,10 +559,10 @@ function displayKosten(kostenListe) {
                 </td>
                 <td class="col-aktionen">
                     ${costTypeButton}
-                    <button class="btn btn-sm btn-primary" onclick="startEdit(${k.id})" data-tooltip="Bearbeiten">
+                    <button class="btn btn-sm btn-edit" onclick="startEdit(${k.id})" data-tooltip="Bearbeiten">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteKosten(${k.id})" data-tooltip="Löschen">
+                    <button class="btn btn-sm btn-delete" onclick="deleteKosten(${k.id})" data-tooltip="Löschen">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
