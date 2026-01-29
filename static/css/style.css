@@ -315,15 +315,15 @@ tr.one-time-row {
 
 /* Hinzufügen-Button (Grün) */
 .btn-add {
-    background-color: #28a745;
-    border-color: #28a745;
-    color: white;
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+    color: white !important;
 }
 
 .btn-add:hover {
-    background-color: #218838;
-    border-color: #1e7e34;
-    color: white;
+    background-color: #218838 !important;
+    border-color: #1e7e34 !important;
+    color: white !important;
 }
 
 /* Anmelden-Button (Login) */
