@@ -266,3 +266,9 @@ tr.one-time-row {
 .konto-header button[data-tooltip]:hover::after {
     opacity: 1;
 }
+
+/* Anpassung der Bootstrap .row margins für Summen-Anzeige */
+.card-body .row {
+    margin-left: calc(-0.3 * var(--bs-gutter-x));
+    margin-right: calc(-0.3 * var(--bs-gutter-x));
+}
