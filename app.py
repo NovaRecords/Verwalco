@@ -621,6 +621,60 @@ def rename_konto():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# Admin-Bereich mit Secret-Token
+ADMIN_SECRET = os.environ.get('ADMIN_SECRET', 'verwalco-admin-2026-secret')  # Ändern Sie dies zu einem sicheren Token
+
+@app.route('/admin/users/<secret>')
+def admin_users(secret):
+    """Admin-Seite zur User-Verwaltung mit Secret-Token"""
+    if secret != ADMIN_SECRET:
+        return "Zugriff verweigert", 403
+    
+    # Hole alle User mit Anzahl ihrer Kosten
+    users_data = []
+    for user in User.select():
+        kosten_count = Kosten.select().where(Kosten.user == user).count()
+        users_data.append({
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'created_at': user.created_at.strftime('%d.%m.%Y %H:%M') if hasattr(user, 'created_at') else 'N/A',
+            'kosten_count': kosten_count
+        })
+    
+    return render_template('admin_users.html', users=users_data, secret=secret)
+
+@app.route('/admin/users/<secret>/delete/<int:user_id>', methods=['POST'])
+def admin_delete_user(secret, user_id):
+    """Löscht einen User samt allen Daten"""
+    if secret != ADMIN_SECRET:
+        return jsonify({'success': False, 'error': 'Zugriff verweigert'}), 403
+    
+    try:
+        user = User.get_or_none(User.id == user_id)
+        if not user:
+            return jsonify({'success': False, 'error': 'User nicht gefunden'}), 404
+        
+        username = user.username
+        
+        # Lösche alle zugehörigen Daten
+        with db.atomic():
+            # Lösche alle Kosten des Users
+            Kosten.delete().where(Kosten.user == user).execute()
+            
+            # Lösche alle PasswordReset-Einträge
+            PasswordReset.delete().where(PasswordReset.user == user).execute()
+            
+            # Lösche den User
+            user.delete_instance()
+        
+        return jsonify({
+            'success': True,
+            'message': f'User "{username}" und alle zugehörigen Daten wurden gelöscht'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # Datenbank-Initialisierung (wird auch mit Gunicorn ausgeführt)
 def init_db():
     """Erstellt die Datenbank-Tabellen, falls sie nicht existieren"""
