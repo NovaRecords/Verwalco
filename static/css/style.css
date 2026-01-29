@@ -276,4 +276,5 @@ tr.one-time-row {
 /* Schriftgröße der Summen-Beschriftungen */
 .card-body .row .card-title {
     font-size: 1.1rem;
+    margin-bottom: 0;
 }
