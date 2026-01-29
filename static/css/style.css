@@ -341,21 +341,21 @@ tr.one-time-row {
 
 /* Login-Links (Passwort vergessen, Registrieren) */
 .link-forgot-password {
-    color: #6c9bd1;
+    color: #363d44;
     text-decoration: none;
 }
 
 .link-forgot-password:hover {
-    color: #8fb3dc;
+    color: #66696c;
     text-decoration: underline;
 }
 
 .link-register {
-    color: #6c9bd1;
+    color: #979797;
     text-decoration: none;
 }
 
 .link-register:hover {
-    color: #8fb3dc;
+    color: #686868;
     text-decoration: underline;
 }
