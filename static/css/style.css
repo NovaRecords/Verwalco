@@ -269,19 +269,20 @@ tr.one-time-row {
 
 /* Anpassung der Bootstrap .row margins für Summen-Anzeige */
 .card-body .row {
-    margin-left: calc(-0.3 * var(--bs-gutter-x));
-    margin-right: calc(-0.3 * var(--bs-gutter-x));
+    margin-left: calc(-0.1 * var(--bs-gutter-x));
+    margin-right: calc(-0.1 * var(--bs-gutter-x));
 }
 
 /* Schriftgröße der Summen-Beschriftungen */
 .card-body .row .card-title {
     font-size: 1.1rem;
+    font-weight: 200;
     margin-top: 6px;
     margin-bottom: 0px;
 }
 
 /* Schriftgröße der Summen-Zahlen */
 .card-body .row h3 {
-    font-size: 2.0rem;
-    font-weight: 200;
+    font-size: 1.8rem;
+    font-weight: 300;
 }
